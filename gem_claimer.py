@@ -23,7 +23,7 @@ def claim_gems():
         # Set options for webdriver
         options = webdriver.FirefoxOptions()
         options.add_argument('--headless') # Don't open actual browser
-        options.add_argument('--normal_muted') # This doesn't seem to work
+        options.add_argument('--mute-audio') # This doesn't seem to work
 
         # Initialize driver  
         driver = webdriver.Firefox(executable_path='./geckodriver', 
