@@ -13,6 +13,6 @@ To run it type
 ```
 python3 gem_claimer.py username password gems
 ```
-but write your own username, password and current amount of gems instead.
+but write your username, password and current amount of gems instead.
 
 Example: `python3 gem_claimer.py lofen 123abc 7114`
