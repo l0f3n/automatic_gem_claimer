@@ -1,4 +1,4 @@
-# automatic_gem_claimer
+# auto_gem_claimer
 
 ## Installing
 
@@ -12,7 +12,5 @@ Then download geckodriver from [here](https://github.com/mozilla/geckodriver/rel
 ## Usage
 Run the script:
 ```
-python3 gem_claimer.py username password current_amount_of_gems
+python3 gem_claimer.py username password
 ```
-
-Example: `python3 gem_claimer.py lofen 123abc 7114`
