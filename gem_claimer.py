@@ -5,9 +5,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from datetime import datetime
 import time
 import sched
-import logging
 import argparse
 import sys
 
@@ -19,80 +19,67 @@ def claim_gems():
 
     global balance
 
-    try:
-        # Set options for webdriver
-        options = webdriver.FirefoxOptions()
-        options.add_argument('--headless') # Don't open actual browser
-        options.add_argument('--mute-audio') # This doesn't seem to work
+    # Set options for webdriver
+    options = webdriver.FirefoxOptions()
+    options.add_argument('--headless') # Don't open actual browser
+    options.add_argument('--mute-audio') # This doesn't seem to work
 
-        # Initialize driver  
-        driver = webdriver.Firefox(executable_path='./geckodriver', 
+    # Initialize driver  
+    driver = webdriver.Firefox(executable_path='./geckodriver', 
                             firefox_options=options)
 
-        # Load starting page
-        driver.get('http://dragonica-extended.com')
+    # Wait for expected condition for 30 sec, otherwise raise exception 
+    wait = WebDriverWait(driver, 30)
 
-        # Login to website
-        driver.find_element_by_name('user_name').send_keys(USERNAME)
-        driver.find_element_by_name('password').send_keys(PASSWORD)
-        driver.find_element_by_name('login').click()
+    # Load starting page
+    driver.get('http://dragonica-extended.com')
 
-        # Navigate to page where claim button is
-        try:
-            # Not being able to find this element means that the user is not
-            # logged in
-            driver.find_element_by_id('navi-menu-button-2').click()
-        except:
-            print('Wrong username or password')
-            sys.exit()
+    # Login to website
+    driver.find_element_by_name('user_name').send_keys(USERNAME)
+    driver.find_element_by_name('password').send_keys(PASSWORD)
+    driver.find_element_by_name('login').click()
+
+    # Navigate to the page with claim button
+    # The user is not logged in if these elements cannot be found
+    try:
+        driver.find_element_by_id('navi-menu-button-2').click()
         driver.switch_to_frame('ifrm')
-       
-        # Wait for expected condition for 5 sec, otherwise raise exception 
-        wait = WebDriverWait(driver, 5)
+    except:
+        print('Incorrect username or password')
+        driver.quit()
+        sys.exit()
 
-        # Claim Gems
-        (wait.until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'btn_claim'))
-            )).click()
-        
-        # Save the amount of gems after attempted claim 
-        try:
-            wait.until_not(
-                    EC.text_to_be_present_in_element(
-                    (By.ID, 'CashDP'), balance))
+    # Save old balance to notice changes after claiming
+    old_balance = (wait.until(
+            EC.presence_of_element_located((By.ID, 'CashDP'))
+        )).text
 
-            balance = driver.find_element_by_id('CashDP').text
+    # Claim Gems
+    (wait.until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'btn_claim'))
+        )).click()
 
-        # If balance is unchanged
-        except: 
-            raise Exception('Balance unchanged')
-
-    # If some error occurred
-    except Exception as e:
-        # Log
-        logging.error(e)
-
-        # Try to claim again in 30 seconds
-        scheduler.enter(30, 1, claim_gems)
-
-    # If everything went as it should
-    else: 
-        # Log
-        logging.info('New balance: {}'.format(balance))
-
-        # Claim again in 30 minutes 
+    # The time of the claim
+    time = str(datetime.now())[:-7]
+    
+    # Wait until the amount of Gems changes. If they dont change then that
+    # probably means that it was less than 30 min before last claim. It will
+    # then try to claim again in 5 min. Otherwise claim again in 30 min.
+    try:
+        wait.until_not(EC.text_to_be_present_in_element(
+                (By.ID, 'CashDP'), old_balance))
+    except:
+        print('[{}]: Balance unchanged. Trying again in 5 min...'.format(\
+                                                                    time))
+        scheduler.enter(300, 1, claim_gems)
+    else:
+        new_balance = driver.find_element_by_id('CashDP').text
+        print('[{}]: New balance: {}'.format(time, new_balance))
         scheduler.enter(1800, 1, claim_gems)
-
-    # Whatever happens
     finally:
-        # Quit driver (basically close browser)
         driver.quit()
 
 if __name__ == '__main__':
-
-    # Configure logging
-    logging.basicConfig(filename='balance.log', level=logging.INFO,
-        format='%(asctime)s:%(levelname)s: %(message)s')
 
     # Initialize scheduler 
     scheduler = sched.scheduler(time.time, time.sleep)
