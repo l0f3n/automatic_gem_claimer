@@ -17,12 +17,10 @@ def claim_gems():
     Claims 250 free Gems on 'dragonica-extended.com' every 30 min.
     """ 
 
-    global balance
-
     # Set options for webdriver
     options = webdriver.FirefoxOptions()
-    options.add_argument('--headless') # Don't open actual browser
-    options.add_argument('--mute-audio') # This doesn't seem to work
+    options.add_argument('--headless') # Does not open browser
+    options.add_argument('--mute-audio') # Suppose to mute audio
 
     # Initialize driver  
     driver = webdriver.Firefox(executable_path='./geckodriver', 
@@ -39,8 +37,8 @@ def claim_gems():
     driver.find_element_by_name('password').send_keys(PASSWORD)
     driver.find_element_by_name('login').click()
 
-    # Navigate to the page with claim button
-    # The user is not logged in if these elements cannot be found
+    # Navigate to the page with claim button. If these elements cannot be
+    # found then it means that the user is not logged in.
     try:
         driver.find_element_by_id('navi-menu-button-2').click()
         driver.switch_to_frame('ifrm')
@@ -58,9 +56,6 @@ def claim_gems():
     (wait.until(
             EC.presence_of_element_located((By.CLASS_NAME, 'btn_claim'))
         )).click()
-
-    # The time of the claim
-    time = str(datetime.now())[:-7]
     
     # Wait until the amount of Gems changes. If they dont change then that
     # probably means that it was less than 30 min before last claim. It will
@@ -69,15 +64,31 @@ def claim_gems():
         wait.until_not(EC.text_to_be_present_in_element(
                 (By.ID, 'CashDP'), old_balance))
     except:
+        time = str(datetime.now())[:-7]
         print('[{}]: Balance unchanged. Trying again in 5 min...'.format(\
                                                                     time))
         scheduler.enter(300, 1, claim_gems)
     else:
+        time = str(datetime.now())[:-7]
         new_balance = driver.find_element_by_id('CashDP').text
         print('[{}]: New balance: {}'.format(time, new_balance))
         scheduler.enter(1800, 1, claim_gems)
     finally:
         driver.quit()
+
+
+def handle_command_line_arguments():
+    parser = argparse.ArgumentParser(description='Automatic Gem claimer.')
+
+    parser.add_argument('username', metavar='username',
+                            help='Username for dragonica-extended.com')
+
+    parser.add_argument('password', metavar='password',
+                            help='Password for dragonica-extended.com')
+
+    args = parser.parse_args() 
+
+    return args
 
 if __name__ == '__main__':
 
@@ -85,17 +96,8 @@ if __name__ == '__main__':
     scheduler = sched.scheduler(time.time, time.sleep)
 
     # Handle command line arguments
-    parser = argparse.ArgumentParser(description='Automatic Gem claimer.')
-    parser.add_argument('username', metavar='username',
-                            help='Username for dragonica-extended.com')
-    parser.add_argument('password', metavar='password',
-                            help='Password for dragonica-extended.com')
-    parser.add_argument('balance', metavar='gems',
-                            help='Current amount of Gems')
-    args = parser.parse_args() 
+    args = handle_command_line_arguments()
 
-    # Set balance, username and password from command line arguments 
-    balance = args.balance 
     USERNAME = args.username
     PASSWORD = args.password
 
