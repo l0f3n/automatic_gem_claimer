@@ -9,12 +9,12 @@ import time
 import sched
 import logging
 import argparse
+import sys
 
 
 def claim_gems():
     """ 
-    Goes to dragonica-extended website, logs in with USERNAME and 
-    PASSWORD specified in file 'login.txt' and claims 250 Gems every 30 min.
+    Claims 250 free Gems on 'dragonica-extended.com' every 30 min.
     """ 
 
     global balance
@@ -32,13 +32,19 @@ def claim_gems():
         # Load starting page
         driver.get('http://dragonica-extended.com')
 
-        # Login to the website
+        # Login to website
         driver.find_element_by_name('user_name').send_keys(USERNAME)
         driver.find_element_by_name('password').send_keys(PASSWORD)
         driver.find_element_by_name('login').click()
 
         # Navigate to page where claim button is
-        driver.find_element_by_id('navi-menu-button-2').click()
+        try:
+            # Not being able to find this element means that the user is not
+            # logged in
+            driver.find_element_by_id('navi-menu-button-2').click()
+        except:
+            print('Wrong username or password')
+            sys.exit()
         driver.switch_to_frame('ifrm')
        
         # Wait for expected condition for 5 sec, otherwise raise exception 
@@ -91,18 +97,20 @@ if __name__ == '__main__':
     # Initialize scheduler 
     scheduler = sched.scheduler(time.time, time.sleep)
 
-    # Store username/password from file 'login.txt' in USERNAME/PASSWORD
-    with open('login.txt', 'r') as f:
-        USERNAME, PASSWORD = f.read().split('\n')[:2]
-    
-    # Handle arguments
+    # Handle command line arguments
     parser = argparse.ArgumentParser(description='Automatic Gem claimer.')
-    parser.add_argument('balance', metavar='Gems',
+    parser.add_argument('username', metavar='username',
+                            help='Username for dragonica-extended.com')
+    parser.add_argument('password', metavar='password',
+                            help='Password for dragonica-extended.com')
+    parser.add_argument('balance', metavar='gems',
                             help='Current amount of Gems')
     args = parser.parse_args() 
 
-    # Set intial balance 
+    # Set balance, username and password from command line arguments 
     balance = args.balance 
+    USERNAME = args.username
+    PASSWORD = args.password
 
     # Initial call to claim_gems()
     claim_gems()
