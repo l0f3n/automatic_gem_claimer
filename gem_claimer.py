@@ -61,6 +61,10 @@ def claim_gems():
         print('[{}] Browser timeout. Trying again in 5 min...'.format(time))
         scheduler.enter(300, 1, claim_gems)
 
+    # If some other exception occured raise it 
+    except Exception as e:
+        raise e
+
     # If everything schedule next claim in 30 minutes
     else:
         time = str(datetime.now())[:-7]
