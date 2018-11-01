@@ -9,8 +9,9 @@ from selenium.common.exceptions import TimeoutException
 from datetime import datetime
 import time
 import sched
-import argparse
 import sys
+import getpass
+import os
 
 
 def claim_gems():
@@ -61,6 +62,11 @@ def claim_gems():
         print('[{}] Browser timeout. Trying again in 5 min...'.format(time))
         scheduler.enter(300, 1, claim_gems)
 
+    # Exit on keyboard interrupt
+    except KeyboardInterrupt:
+        print()
+        sys.exit()
+
     # If some other exception occured raise it 
     except Exception as e:
         raise e
@@ -74,35 +80,26 @@ def claim_gems():
 
     # Whatever happens quit driver 
     finally:
-        driver.quit()
-        
 
-def handle_command_line_arguments():
-    parser = argparse.ArgumentParser(description='Automatic Gem claimer.')
-
-    parser.add_argument('username', metavar='username',
-                            help='Username for dragonica-extended.com')
-
-    parser.add_argument('password', metavar='password',
-                            help='Password for dragonica-extended.com')
-
-    args = parser.parse_args() 
-
-    return args
+        try:
+            driver.quit()
+        except:
+            pass
 
 if __name__ == '__main__':
 
     # Initialize scheduler 
     scheduler = sched.scheduler(time.time, time.sleep)
 
-    # Handle command line arguments
-    args = handle_command_line_arguments()
+    try:
+        USERNAME = input('Username: ')
+        PASSWORD = getpass.getpass('Password: ')
+    except KeyboardInterrupt:
+        print()
+        sys.exit()
 
-    USERNAME = args.username
-    PASSWORD = args.password
+    os.system('cls' if os.name == 'nt' else 'clear') # Windows / Unix
 
-    # Initial call to claim_gems()
+    # Call claim_gem() and run scheduler
     claim_gems()
-
-    # Run scheduler
     scheduler.run()
