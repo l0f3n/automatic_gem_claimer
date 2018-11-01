@@ -19,15 +19,12 @@ def claim_gems():
 
     # Set options for webdriver
     options = webdriver.FirefoxOptions()
-    options.add_argument('--headless') # Does not open browser
-    options.add_argument('--mute-audio') # Suppose to mute audio
+    #options.add_argument('--headless') # Does not open browser
+    #options.add_argument('--mute-audio') # Suppose to mute audio
 
     # Initialize driver  
     driver = webdriver.Firefox(executable_path='./geckodriver', 
                             firefox_options=options)
-
-    # Wait for expected condition for 30 sec, otherwise raise exception 
-    wait = WebDriverWait(driver, 30)
 
     # Load starting page
     driver.get('http://dragonica-extended.com')
@@ -37,10 +34,14 @@ def claim_gems():
     driver.find_element_by_name('password').send_keys(PASSWORD)
     driver.find_element_by_name('login').click()
 
+    # Wait for expected condition for 30 sec, otherwise raise exception 
+    wait = WebDriverWait(driver, 30)
+
     # Navigate to the page with claim button. If these elements cannot be
     # found then it means that the user is not logged in.
     try:
-        driver.find_element_by_id('navi-menu-button-2').click()
+        (wait.until(EC.presence_of_element_located(
+                    (By.ID, 'navi-menu-button-2')))).click()
         driver.switch_to_frame('ifrm')
     except:
         print('Incorrect username or password')
@@ -48,30 +49,29 @@ def claim_gems():
         sys.exit()
 
     # Save old balance to notice changes after claiming
-    old_balance = (wait.until(
-            EC.presence_of_element_located((By.ID, 'CashDP'))
-        )).text
+    old_balance = (wait.until(EC.presence_of_element_located(
+        (By.ID, 'CashDP')))).text
 
     # Claim Gems
-    (wait.until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'btn_claim'))
-        )).click()
+    (wait.until(EC.presence_of_element_located(
+        (By.CLASS_NAME, 'btn_claim')))).click()
     
     # Wait until the amount of Gems changes. If they dont change then that
     # probably means that it was less than 30 min before last claim. It will
     # then try to claim again in 5 min. Otherwise claim again in 30 min.
     try:
+        wait.until(EC.presence_of_element_located((By.ID, 'CashDP')))
         wait.until_not(EC.text_to_be_present_in_element(
                 (By.ID, 'CashDP'), old_balance))
+        new_balance = driver.find_element_by_id('CashDP').text
     except:
         time = str(datetime.now())[:-7]
-        print('[{}]: Balance unchanged. Trying again in 5 min...'.format(\
+        print('[{}] Error: Trying again in 5 min...'.format(\
                                                                     time))
         scheduler.enter(300, 1, claim_gems)
     else:
         time = str(datetime.now())[:-7]
-        new_balance = driver.find_element_by_id('CashDP').text
-        print('[{}]: New balance: {}'.format(time, new_balance))
+        print('[{}] New balance: {}'.format(time, new_balance))
         scheduler.enter(1800, 1, claim_gems)
     finally:
         driver.quit()
