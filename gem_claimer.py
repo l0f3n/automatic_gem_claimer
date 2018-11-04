@@ -40,16 +40,10 @@ def claim_gems():
         # Wait for expected condition for 60 sec, otherwise raise exception 
         wait = WebDriverWait(driver, 60)
 
-        # Navigate to the page with claim button. If these elements cannot
-        # be found then it means that the user is not logged in
-        try:
-            (wait.until(EC.presence_of_element_located(
-                        (By.ID, 'navi-menu-button-2')))).click()
-            driver.switch_to_frame('ifrm')
-        except:
-            print('Incorrect username or password')
-            driver.quit()
-            sys.exit()
+        # Navigate to the claim button
+        (wait.until(EC.presence_of_element_located(
+                    (By.ID, 'navi-menu-button-2')))).click()
+        driver.switch_to_frame('ifrm')
 
         # Claim Gems
         (wait.until(EC.presence_of_element_located(
