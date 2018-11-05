@@ -23,9 +23,11 @@ Run the script: `python3 gem_claimer.py`
 ## AutoHotkey scripts
 
 ### About
-XSpam.ahk will spam the X button, useful for the invoker class. 
-RightClickF1Spam.ahk will spam right click and F1, useful for collect large amounts gem items and alike.
-LeftClickSpam.ahk will spam left click, useful for allocating bonus stats.
+__XSpam.ahk__: will spam the X button, useful for the invoker class. 
+
+__RightClickF1Spam.ahk__: will spam right click and F1, useful for collect large amounts gem items and alike.
+
+__LeftClickSpam.ahk__: will spam left click, useful for allocating bonus stats.
 
 ### Installing
 
@@ -39,8 +41,10 @@ For the scripts to work ScrollLock needs to be toggled.
  
 Start them by pressing the following keys:
 
-XSpam: Press Ctrl+x and continue to hold x.
-RightClickF1Spam: Press Ctrl+F1 and continue to hold F1.
-LeftClickSpam: Press Ctrl+LeftClick and continue to hold LeftClick.
+__XSpam__: Press Ctrl+x and continue to hold x.
+
+__RightClickF1Spam__: Press Ctrl+F1 and continue to hold F1.
+
+__LeftClickSpam__: Press Ctrl+LeftClick and continue to hold LeftClick.
 
 After letting go of the respective button the script will stop.
