@@ -1,4 +1,4 @@
-# automatic_gem_claimer
+# dragonica_extended_utilities 
 
 ## auto_gem_claimer
 
